@@ -33,3 +33,4 @@ Gama, qui quadrado, qui quadrado
 
 Gráfico boxplot
 Media, mediana, IIQ, assimetria
+!!!!

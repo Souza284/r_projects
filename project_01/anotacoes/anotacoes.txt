@@ -1,28 +1,35 @@
+Variaveis:
+
+UTP - Categorica nominal
+Local de trabalho - Categorica nominal
+UTP de origem - Categorica nominal
+Meio de transporte - Categorica nominal
+Sexo - Categorica nominal
+Cor/raca - Categorica nominal
+Escolaridade - Categorica ordinal
+Tempo - Categorica ordinal
+Renda - Quantitativa continua
+
 1. Onde as pessoas trabalham? 
 
 Tabela de dupla entrada e gráfico de bolhas
-Qualitativa Nominal
 
 2. Quanto tempo cada RA gasta?
 
-Boxplot + densidade
-media, mediana, IIQ, assimetria
-Qualitativa Ordinal 
+Mapa de calor
 
-3. Como as pessoas se deslocam?
+3. Como as pessoas se deslocam e qual a relacao do meio de transporte com o tempo?
 
-Barras empilhadas + violino (para relacionar o meio de transporte com o tempo)
-Selecionar até 5 meios de tranporte mais utilizados (variável H05_11
+2 Barras empilhadas
+Selecionar até 5 meios de tranporte mais utilizados (variável H05_11)
 
 4. Existe segregação em quem demora mais?
 
-tempo x escolaridade,sexo,cor
-boxplots
-R^2
-
-aqui temos que verificar se vamos continuar com a faixa de tempo ou se vamos discretizar
+tempo x escolaridade,sexo e cor/raca
+3 Tabelas de contingencia
+Gama, qui quadrado, qui quadrado
 
 5. Tem relação da renda com tempo?
 
-Gráfico de dispersão com linha de tendência
-spearman
+Gráfico boxplot
+Media, mediana, IIQ, assimetria

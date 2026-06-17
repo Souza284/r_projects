@@ -33,4 +33,13 @@ Gama, qui quadrado, qui quadrado
 
 Gráfico boxplot
 Media, mediana, IIQ, assimetria
-!!!!
+
+6. O sexo do trabalhador está associado a diferentes faixas de tempo de deslocamento no Distrito Federal?
+Gráfico de Barras Empilhadas
+Medidas Necessárias:
+
+Mediana: Calcular o tempo mediano para homens e mulheres separadamente.
+
+Moda: Identificar a faixa de tempo mais comum para cada sexo.
+
+Tabela de Contingência (Cruzamento): Criar uma tabela com Sexo (Linhas) x Faixas de Tempo (Colunas).

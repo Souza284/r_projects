@@ -1,0 +1,24 @@
+1. Onde as pessoas trabalham? 
+
+Tabela de frequências e gráfico de barras
+
+2. Quanto tempo cada RA gasta?
+
+Boxplot + densidade
+media, mediana, IIQ, assimetria
+
+3. Como as pessoas se deslocam?
+
+Barras empilhadas + violino (para relacionar o meio de transporte com o tempo)
+
+4. Existe segregação em quem demora mais?
+
+tempo x escolaridade,sexo,cor
+boxplots
+R^2
+ver com o prof se pode fazer regressão linear múltipla pra conseguir relacionar as 3 variáveis
+
+5. Tem relação da renda com  tempo?
+
+Gráfico de dispersão com linha de tendência
+spearman

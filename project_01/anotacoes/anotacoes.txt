@@ -1,15 +1,18 @@
 1. Onde as pessoas trabalham? 
 
-Tabela de frequências e gráfico de barras
+Tabela de dupla entrada e gráfico de bolhas
+Qualitativa Nominal
 
 2. Quanto tempo cada RA gasta?
 
 Boxplot + densidade
 media, mediana, IIQ, assimetria
+Qualitativa Ordinal 
 
 3. Como as pessoas se deslocam?
 
 Barras empilhadas + violino (para relacionar o meio de transporte com o tempo)
+Selecionar até 5 meios de tranporte mais utilizados (variável H05_11
 
 4. Existe segregação em quem demora mais?
 
@@ -17,7 +20,9 @@ tempo x escolaridade,sexo,cor
 boxplots
 R^2
 
-5. Tem relação da renda com  tempo?
+aqui temos que verificar se vamos continuar com a faixa de tempo ou se vamos discretizar
+
+5. Tem relação da renda com tempo?
 
 Gráfico de dispersão com linha de tendência
 spearman

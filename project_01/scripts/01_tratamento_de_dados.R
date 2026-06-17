@@ -34,7 +34,5 @@ dados_moradores <- dados_brutos_moradores %>%
 
 View(summarise(dados_moradores, tot = n()))
 
-
-
 View(dados_moradores)
 

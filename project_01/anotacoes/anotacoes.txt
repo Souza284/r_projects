@@ -16,7 +16,6 @@ Barras empilhadas + violino (para relacionar o meio de transporte com o tempo)
 tempo x escolaridade,sexo,cor
 boxplots
 R^2
-ver com o prof se pode fazer regressão linear múltipla pra conseguir relacionar as 3 variáveis
 
 5. Tem relação da renda com  tempo?
 

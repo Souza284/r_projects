@@ -1,6 +1,8 @@
 # Importando a base de dados PDAD2021 do IPEDF ----------------------------------------------
 
 library(tidyverse)
+install.packages("readxl")
+library(readxl)
 
 ?read.csv
 
@@ -50,8 +52,27 @@ base_final <- base_cruzada %>%
     sexo != 99999 & sexo != 88888,
     cor_raca != 99999 & cor_raca != 88888,
     !is.na(renda)
+  ) %>% 
+  arrange(unidade_planejamento) %>% 
+  group_by(unidade_planejamento) %>% 
+  mutate(
+    unidade_planejamento = case_when(
+      unidade_planejamento == 1 ~ "central",
+      unidade_planejamento == 2 ~ "central adjacente 1",
+      unidade_planejamento == 3 ~ "central adjacente 2",
+      unidade_planejamento == 4 ~ "Oeste",
+      unidade_planejamento == 5 ~ "Sul",
+      unidade_planejamento == 6 ~ "Leste",
+      unidade_planejamento == 7 ~ "Norte",
+    )
   )
 
 View(base_final)
 
+#Total da amostra
 nrow(base_final)
+
+
+# Tratando as variáveis ---------------------------------------------------
+
+#

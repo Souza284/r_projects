@@ -78,16 +78,7 @@ base_final <- base_cruzada %>%
       unidade_planejamento == 7 ~ "Norte",
     ),
     unidade_planejamento = factor(
-      unidade_planejamento,
-      levels = c(
-        "Central",
-        "Central Adjacente 1",
-        "Central Adjacente 2",
-        "Oeste",
-        "Sul",
-        "Leste",
-        "Norte"
-      )
+      unidade_planejamento
     ),
     #Regiões administrativas.
     regiao_administrativa = case_when(

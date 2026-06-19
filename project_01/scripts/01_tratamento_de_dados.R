@@ -27,7 +27,6 @@ dados_brutos_domicilios <- read.csv2("dados/PDAD_2021-Domicilios(1).csv")
 # Tempo - Categorica ordinal (I10).
 # Renda - Quantitativa continua (renda_ind_r).
 
-
 # Tratamento e manipulação dos dados --------------------------------------
 
 #Cruzando as bases de dados pelo número da ficha do morador e domicílio.
@@ -295,7 +294,6 @@ print(comparacao_ajustada)
 #10. Calcular o erro total
 cat("Erro sem peso:", sum(abs(comparacao_ajustada$diferenca_bruta)), "\n")
 cat("Erro com peso:", sum(abs(comparacao_ajustada$diferenca_ajustada)), "\n")
-
 
 # Tratando os dados geográficos -------------------------------------------
 

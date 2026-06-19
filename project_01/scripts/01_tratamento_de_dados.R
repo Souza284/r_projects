@@ -2,7 +2,7 @@
 
 library(tidyverse)
 # install.packages("readxl")
-# library(readxl)
+library(readxl)
 
 ?read.csv
 
@@ -46,17 +46,20 @@ base_final <- base_cruzada %>%
     renda = renda_ind_r,
     escolaridade,
     sexo = E04,
-    cor_raca = E06
+    cor_raca = E06,
+    peso_amostral_morador = PESO_MOR,
+    pop_ajustada = POP_AJUSTADA_PROJ,
+    pos_estrato = POS_ESTRATO
   ) %>% 
   #Filtra apenas as observações em que todas as variáveis foram respondidas
   filter(
     tempo_deslocamento != 99999 & tempo_deslocamento != 88888,
     meio_transporte != 99999 & meio_transporte != 88888,
-    local_trabalho != 99999 & local_trabalho != 88888,
+    local_trabalho != 99999 & local_trabalho != 88888 & local_trabalho %in% 1:33,
     escolaridade != 99999 & escolaridade != 88888,
     sexo != 99999 & sexo != 88888,
     cor_raca != 99999 & cor_raca != 88888,
-    !is.na(renda)
+    !is.na(renda),
   ) %>% 
   #Ordena em ordem crescente as Unidades de Planejamento Territoriais e as regiões administrativas.
   arrange(unidade_planejamento, regiao_administrativa) %>% 
@@ -144,23 +147,169 @@ base_final <- base_cruzada %>%
         "Superior incompleto",
         "Superior completo"
       )
+    ),
+    #Local de trabalho
+    local_trabalho = case_when(
+      local_trabalho %in% c(1,11, 19, 22) ~ "Central",
+      local_trabalho %in% c(16, 18, 23, 24) ~ "Central Adjacente 1",
+      local_trabalho %in% c(8, 10, 17, 20, 25, 29, 30, 33) ~ "Central Adjacente 2",
+      local_trabalho %in% c(3, 4, 9, 12, 32) ~ "Oeste",
+      local_trabalho %in% c(2, 13, 15, 21) ~ "Sul",
+      local_trabalho %in% c(7, 14, 27, 28) ~ "Leste",
+      local_trabalho %in% c(5, 6, 26, 31) ~ "Norte"
+    ),
+    #Meio de transporte
+    meio_transporte = case_when(
+      meio_transporte == 1 ~ "Ônibus",
+      meio_transporte == 2 ~ "Automóvel",
+      meio_transporte == 3 ~ "Transporte privado (empresa de aplicativo)",
+      meio_transporte == 4 ~ "Metrô",
+      meio_transporte == 5 ~ "Motocicleta",
+      meio_transporte == 6 ~ "Bicicleta",
+      meio_transporte == 7 ~ "A pé"
+    ),
+    #Tempo de deslocamento
+    tempo_deslocamento = case_when(
+      tempo_deslocamento == 1 ~ "Até 15 minutos",
+      tempo_deslocamento == 2 ~ "Acima de 15 minutos até 30 minutos",
+      tempo_deslocamento == 3 ~ "Acima de 30 minutos até 45 minutos",
+      tempo_deslocamento == 4 ~ "Acima de 45 minutos até 1 hora",
+      tempo_deslocamento == 5 ~ "Acima de 1 hora até 1 hora e 15 minutos",
+      tempo_deslocamento == 6 ~ "Acima de 1 hora e 15 minutos até 1 hora e 30 minutos",
+      tempo_deslocamento == 7 ~ "Acima de 1 hora e 30 minutos até 1 hora e 45 minutos",
+      tempo_deslocamento == 8 ~ "Acima 1 hora e 45 minutos até 2 horas",
+      tempo_deslocamento == 9 ~ "Acima de 2 horas"
+    ),
+    tempo_deslocamento = factor(
+      tempo_deslocamento,
+      levels = c(
+        "Até 15 minutos",
+        "Acima de 15 minutos até 30 minutos",
+        "Acima de 30 minutos até 45 minutos",
+        "Acima de 45 minutos até 1 hora",
+        "Acima de 1 hora até 1 hora e 15 minutos",
+        "Acima de 1 hora e 15 minutos até 1 hora e 30 minutos",
+        "Acima de 1 hora e 30 minutos até 1 hora e 45 minutos",
+        "Acima 1 hora e 45 minutos até 2 horas",
+        "Acima de 2 horas"
+      )
+    ),
+    #Sexo
+    sexo = case_when(
+      sexo == 1 ~ "Masculino",
+      sexo == 2 ~ "Feminino"
+    ),
+    #Cor/raça
+    cor_raca = case_when(
+      cor_raca == 1 ~ "Branca",
+      cor_raca == 2 ~ "Preta",
+      cor_raca == 3 ~ "Amarela",
+      cor_raca == 4 ~ "Parda",
+      cor_raca == 5 ~ "Indígena"
     )
   )
 
 View(base_final)
+
+# Conferindo a distribuição da amostra ------------------------------------
+
+nrow(base_final)
+
+#Total da amostra da base final: 21488
 base_final %>% 
   group_by(unidade_planejamento) %>% 
   summarise(tot = n())
 
-#Total da amostra da base final: 21488
-nrow(base_final)
+#Distribuição bruta
+# 1 Central               4950
+# 2 Central Adjacente 1   1683
+# 3 Central Adjacente 2   5298
+# 4 Oeste                 2992
+# 5 Sul                   1756
+# 6 Leste                 3182
+# 7 Norte                 1627
 
-# 1 Leste                   3182
-# 2 Norte                 1627
-# 3 Oeste                 2992
-# 4 Sul                   1756
-# 5 central               4950
-# 6 central adjacente 1   1683
-# 7 central adjacente 2   5298
+#AMOSTRA ENVIESADA!
 
 
+# Retirar o viés da amostra -----------------------------------------------
+
+#No banco de dados, existem variáveis que corrigem isso: peso dos moradores (fator de expansão),
+#posição estrato(estrato do plano amostral) e população ajustada (total de pessoas por estrato)
+
+#SOLUÇÃO: Atribuir os pesos - peso = proporção real da região / proporção da amostra
+install.packages("survey")
+library(survey)
+
+#1. Criar uma tabela com as proporções reais da população do DF
+prop_real <- data.frame(
+  unidade_planejamento = c(
+    "Central",
+    "Central Adjacente 1",
+    "Central Adjacente 2",
+    "Oeste",
+    "Sul",
+    "Leste",
+    "Norte"
+  ),
+  prop_real = c(9.78, 4.16, 19.07, 24.46, 16.29, 15.04, 11.19)
+)
+
+#2. Calcular a distribuição da sua amostra por UPT
+dist_bruta <- base_final %>%
+  group_by(unidade_planejamento) %>%
+  summarise(
+    n_bruto = n()  # conta quantas linhas tem em cada UPT
+  ) %>%
+  mutate(
+    prop_bruta = n_bruto / sum(n_bruto) * 100  # calcula a porcentagem
+  )
+
+#3. Juntar a tabela real com a da amostra
+comparacao <- prop_real %>%
+  left_join(dist_bruta, by = "unidade_planejamento")
+
+#4. Calcular o peso para cada UPT
+comparacao <- comparacao %>%
+  mutate(
+    peso_upt = prop_real / prop_bruta
+  )
+
+#5. Adicionar o peso na base final
+base_final <- base_final %>%
+  left_join(
+    comparacao %>% select(unidade_planejamento, peso_upt),
+    by = "unidade_planejamento"
+  )
+
+#6. Garantir que peso_upt é numérico
+base_final <- base_final %>%
+  mutate(
+    peso_upt = as.numeric(peso_upt)
+  )
+
+#7. Calcular a distribuição ponderada
+dist_ponderada_ajustada <- base_final %>%
+  group_by(unidade_planejamento) %>%
+  summarise(
+    n_ponderado_ajustado = sum(peso_upt, na.rm = TRUE)
+  ) %>%
+  mutate(
+    prop_ponderada_ajustada = n_ponderado_ajustado / sum(n_ponderado_ajustado, na.rm = TRUE) * 100
+  )
+
+#8. Juntar tudo para comparar
+comparacao_ajustada <- prop_real %>%
+  left_join(dist_bruta, by = "unidade_planejamento") %>%
+  left_join(dist_ponderada_ajustada, by = "unidade_planejamento") %>%
+  mutate(
+    diferenca_bruta = prop_bruta - prop_real,
+    diferenca_ajustada = prop_ponderada_ajustada - prop_real
+  )
+
+#9. Ver o resultado
+print(comparacao_ajustada)
+
+#10. Calcular o erro total
+cat("Erro sem peso:", sum(abs(comparacao_ajustada$diferenca_bruta)), "\n")
+cat("Erro com peso:", sum(abs(comparacao_ajustada$diferenca_ajustada)), "\n")

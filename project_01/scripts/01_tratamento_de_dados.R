@@ -53,10 +53,10 @@ base_final <- base_cruzada %>%
   ) %>% 
   #Filtra apenas as observações em que todas as variáveis foram respondidas
   filter(
-    tempo_deslocamento != 99999 & tempo_deslocamento != 88888,
+    tempo_deslocamento != 99999 & tempo_deslocamento != 88888 & !is.na(tempo_deslocamento),
     meio_transporte != 99999 & meio_transporte != 88888,
     local_trabalho != 99999 & local_trabalho != 88888 & local_trabalho %in% 1:33,
-    escolaridade != 99999 & escolaridade != 88888,
+    escolaridade != 99999 & escolaridade != 88888 & escolaridade != 8,
     sexo != 99999 & sexo != 88888,
     cor_raca != 99999 & cor_raca != 88888,
     !is.na(renda),
@@ -161,27 +161,19 @@ base_final <- base_cruzada %>%
     ),
     #Tempo de deslocamento
     tempo_deslocamento = case_when(
-      tempo_deslocamento == 1 ~ "Até 15 minutos",
-      tempo_deslocamento == 2 ~ "Acima de 15 minutos até 30 minutos",
-      tempo_deslocamento == 3 ~ "Acima de 30 minutos até 45 minutos",
-      tempo_deslocamento == 4 ~ "Acima de 45 minutos até 1 hora",
-      tempo_deslocamento == 5 ~ "Acima de 1 hora até 1 hora e 15 minutos",
-      tempo_deslocamento == 6 ~ "Acima de 1 hora e 15 minutos até 1 hora e 30 minutos",
-      tempo_deslocamento == 7 ~ "Acima de 1 hora e 30 minutos até 1 hora e 45 minutos",
-      tempo_deslocamento == 8 ~ "Acima 1 hora e 45 minutos até 2 horas",
+      (tempo_deslocamento == 1 | tempo_deslocamento == 2) ~ "Até 30 minutos",
+      (tempo_deslocamento == 3 | tempo_deslocamento == 4) ~ "Entre 30 minutos e 1 hora",
+      (tempo_deslocamento == 5 | tempo_deslocamento == 6) ~ "Entre 1 hora e 1 hora e 30 minutos",
+      (tempo_deslocamento == 7 | tempo_deslocamento == 8) ~ "Entre 1 hora e 30 minutos e 2 horas",
       tempo_deslocamento == 9 ~ "Acima de 2 horas"
     ),
     tempo_deslocamento = factor(
       tempo_deslocamento,
       levels = c(
-        "Até 15 minutos",
-        "Acima de 15 minutos até 30 minutos",
-        "Acima de 30 minutos até 45 minutos",
-        "Acima de 45 minutos até 1 hora",
-        "Acima de 1 hora até 1 hora e 15 minutos",
-        "Acima de 1 hora e 15 minutos até 1 hora e 30 minutos",
-        "Acima de 1 hora e 30 minutos até 1 hora e 45 minutos",
-        "Acima 1 hora e 45 minutos até 2 horas",
+        "Até 30 minutos",
+        "Entre 30 minutos e 1 hora",
+        "Entre 1 hora e 1 hora e 30 minutos",
+        "Entre 1 hora e 30 minutos e 2 horas",
         "Acima de 2 horas"
       )
     ),
@@ -221,7 +213,6 @@ base_final %>%
 # 7 Norte                 1627
 
 #AMOSTRA ENVIESADA!
-
 
 # Retirar o viés da amostra -----------------------------------------------
 
@@ -304,3 +295,50 @@ print(comparacao_ajustada)
 #10. Calcular o erro total
 cat("Erro sem peso:", sum(abs(comparacao_ajustada$diferenca_bruta)), "\n")
 cat("Erro com peso:", sum(abs(comparacao_ajustada$diferenca_ajustada)), "\n")
+
+
+# Tratando os dados geográficos -------------------------------------------
+
+#Extração dos dados geográficos do IPEDF
+
+install.packages("sf")
+library(sf)
+
+#Arquivos: 
+##.shp: Coordenadas para o desenho dos polígonos
+##.shx: Índice/sumario de geometria
+##.dbf: Dados como área, código etc
+##.prj: Sistema de projeção
+##.cpg: Codificação de caracteres
+
+#Funções do sf:
+##st_read: Lê o shapefile
+##st_geometry: Extrai a geometria dos dados
+##st_crs: Verifica ou define o sistema de projeção
+##st_transform: Altera o sistema de projeção
+##st_centroid: Calcula o centro de cada polígono
+##st_area: Calcula a área de cada polígono
+##st_intersects: Verifica sobreposição
+##st_as_sf: Transforma um data frame normal em espacial
+
+dados_espaciais_upt <- st_read("dados/dados_geograficos/UPT.shp")
+View(dados_espaciais_upt)
+
+#Cruzando a base final com os dados espaciais
+
+base_mapa = base_final %>% 
+  select(
+    unidade_planejamento,
+    tempo_deslocamento
+  ) %>% 
+  left_join(
+    dados_espaciais_upt,
+    by = c("unidade_planejamento" = "nome")
+  )
+
+#Geometria do mapa: Multipolígono
+st_geometry_type(dados_espaciais_upt)
+
+# Salvando a base final ---------------------------------------------------
+
+write.csv2(base_final, "dados/base_final.csv")

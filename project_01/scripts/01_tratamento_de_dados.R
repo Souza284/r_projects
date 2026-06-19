@@ -337,6 +337,10 @@ base_mapa = base_final %>%
 #Geometria do mapa: Multipolígono
 st_geometry_type(dados_espaciais_upt)
 
+#Convertendo para sf
+
+base_mapa = st_as_sf(base_mapa)
+
 # Salvando a base final ---------------------------------------------------
 
 write.csv2(base_final, "dados/base_final.csv")

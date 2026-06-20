@@ -1,0 +1,266 @@
+---
+title: "Tempo de deslocamento para o trabalho e características sociodemográficas no Distrito Federal"
+author: "DanieL Sobrenome, Marina Amorim Ferreira e Pedro Souza"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    toc_depth: 2
+    number_sections: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  message = FALSE,
+  warning = FALSE
+)
+
+library(tidyverse)
+library(scales)
+```
+
+# Introdução
+
+Este trabalho analisa o tempo de deslocamento para o trabalho no Distrito Federal, considerando características sociodemográficas da população. O objetivo é observar como o tempo gasto no trajeto até o trabalho se distribui segundo sexo, cor/raça, escolaridade e renda.
+
+A discussão sobre deslocamento ao trabalho é relevante porque a mobilidade urbana afeta diretamente o acesso da população às oportunidades de emprego, aos serviços urbanos e à qualidade de vida. No Distrito Federal, essa questão é especialmente importante devido à concentração de postos de trabalho em algumas Regiões Administrativas e à existência de fluxos diários entre diferentes áreas do território.
+
+Este estudo dialoga com a pesquisa de Gonçalves (2024), que analisou os deslocamentos ao trabalho e os meios de transporte utilizados pelos grupos populacionais do Distrito Federal a partir da PDAD 2021. O autor mostrou que os deslocamentos para o trabalho estão relacionados às características socioeconômicas dos trabalhadores e aos diferentes meios de transporte utilizados.
+
+As perguntas que orientam esta análise são: como se distribui o tempo de deslocamento para o trabalho? Há diferença no tempo de deslocamento segundo sexo? Há associação entre tempo de deslocamento e cor/raça? Há associação entre tempo de deslocamento e escolaridade? Como a renda se distribui entre as diferentes faixas de tempo de deslocamento?
+
+# Métodos
+
+Foram utilizados dados da Pesquisa Distrital por Amostra de Domicílios, organizados previamente na base `base_final.csv`. A análise foi realizada no software R, com uso de tabelas de frequência, tabelas de contingência, percentuais por coluna, teste qui-quadrado e boxplot.
+
+```{r importar-dados}
+base_final <- read.csv2("base_final.csv")
+
+str(base_final)
+names(base_final)
+```
+
+## Variáveis utilizadas
+
+```{r tabela-variaveis}
+variaveis <- tibble(
+  Variavel = c(
+    "tempo_deslocamento",
+    "sexo",
+    "cor_raca",
+    "escolaridade",
+    "renda",
+    "unidade_planejamento",
+    "meio_transporte",
+    "peso_upt"
+  ),
+  Descricao = c(
+    "Tempo de deslocamento para o trabalho",
+    "Sexo do morador",
+    "Cor ou raça declarada",
+    "Nível de escolaridade",
+    "Renda individual",
+    "Unidade de Planejamento Territorial",
+    "Principal meio de transporte utilizado",
+    "Peso amostral por UPT"
+  ),
+  Tipo = c(
+    "Qualitativa ordinal",
+    "Qualitativa nominal",
+    "Qualitativa nominal",
+    "Qualitativa ordinal",
+    "Quantitativa contínua",
+    "Qualitativa nominal",
+    "Qualitativa nominal",
+    "Quantitativa contínua"
+  )
+)
+
+knitr::kable(
+  variaveis,
+  caption = "Tabela 1: Descrição das variáveis utilizadas no estudo."
+)
+```
+
+# Preparação das variáveis
+
+Foram realizados alguns agrupamentos para facilitar a interpretação das tabelas e evitar categorias com frequências muito pequenas. As categorias “Amarela” e “Indígena” foram agrupadas em “Outras”. A escolaridade foi agrupada em três níveis: até fundamental, ensino médio e superior. Para as análises com cor/raça e escolaridade, o tempo de deslocamento foi agrupado em três categorias.
+
+```{r preparar-variaveis}
+base_final$tempo_deslocamento <- factor(
+  base_final$tempo_deslocamento,
+  levels = c(
+    "Até 30 minutos",
+    "Entre 30 minutos e 1 hora",
+    "Entre 1 hora e 1 hora e 30 minutos",
+    "Entre 1 hora e 30 minutos e 2 horas",
+    "Acima de 2 horas"
+  ),
+  ordered = TRUE
+)
+
+base_final$tempo_deslocamento3 <- as.character(base_final$tempo_deslocamento)
+
+base_final$tempo_deslocamento3[
+  base_final$tempo_deslocamento %in% c(
+    "Entre 1 hora e 1 hora e 30 minutos",
+    "Entre 1 hora e 30 minutos e 2 horas",
+    "Acima de 2 horas"
+  )
+] <- "Acima de 1 hora"
+
+base_final$tempo_deslocamento3 <- factor(
+  base_final$tempo_deslocamento3,
+  levels = c(
+    "Até 30 minutos",
+    "Entre 30 minutos e 1 hora",
+    "Acima de 1 hora"
+  ),
+  ordered = TRUE
+)
+
+base_final$cor_raca2 <- base_final$cor_raca
+base_final$cor_raca2[base_final$cor_raca == "Amarela"] <- "Outras"
+base_final$cor_raca2[base_final$cor_raca == "Indígena"] <- "Outras"
+
+base_final$escolaridade2 <- base_final$escolaridade
+
+base_final$escolaridade2[
+  base_final$escolaridade %in% c(
+    "Sem instrução",
+    "Fundamental incompleto",
+    "Fundamental completo"
+  )
+] <- "Até fundamental"
+
+base_final$escolaridade2[
+  base_final$escolaridade %in% c(
+    "Médio incompleto",
+    "Médio completo"
+  )
+] <- "Ensino médio"
+
+base_final$escolaridade2[
+  base_final$escolaridade %in% c(
+    "Superior incompleto",
+    "Superior completo"
+  )
+] <- "Superior"
+```
+
+# Resultados
+
+## Frequências simples
+
+```{r frequencias}
+freq_tempo <- table(base_final$tempo_deslocamento)
+freq_sexo <- table(base_final$sexo)
+freq_cor <- table(base_final$cor_raca2)
+freq_escolaridade <- table(base_final$escolaridade2)
+
+knitr::kable(freq_tempo, caption = "Tabela 2: Frequência do tempo de deslocamento.")
+knitr::kable(freq_sexo, caption = "Tabela 3: Frequência por sexo.")
+knitr::kable(freq_cor, caption = "Tabela 4: Frequência por cor/raça agrupada.")
+knitr::kable(freq_escolaridade, caption = "Tabela 5: Frequência por escolaridade agrupada.")
+```
+
+## Tempo de deslocamento e sexo
+
+```{r sexo}
+tab_sexo <- table(base_final$tempo_deslocamento, base_final$sexo)
+prop_sexo <- round(prop.table(tab_sexo, 2) * 100, 2)
+
+knitr::kable(tab_sexo, caption = "Tabela 6: Tempo de deslocamento por sexo.")
+knitr::kable(prop_sexo, caption = "Tabela 7: Percentual do tempo de deslocamento por sexo.")
+
+teste_sexo <- chisq.test(tab_sexo)
+teste_sexo
+```
+
+Os percentuais por coluna permitem comparar a distribuição do tempo de deslocamento dentro de cada grupo de sexo.
+
+## Tempo de deslocamento e cor/raça
+
+```{r cor}
+tab_cor <- table(base_final$tempo_deslocamento3, base_final$cor_raca2)
+prop_cor <- round(prop.table(tab_cor, 2) * 100, 2)
+
+knitr::kable(tab_cor, caption = "Tabela 8: Tempo de deslocamento por cor/raça.")
+knitr::kable(prop_cor, caption = "Tabela 9: Percentual do tempo de deslocamento por cor/raça.")
+
+teste_cor <- chisq.test(tab_cor)
+teste_cor
+```
+
+A variável cor/raça foi analisada com categorias agrupadas porque algumas categorias tinham baixa frequência. Esse agrupamento reduz problemas nas tabelas de contingência e facilita a interpretação.
+
+## Tempo de deslocamento e escolaridade
+
+```{r escolaridade}
+tab_escolaridade <- table(base_final$tempo_deslocamento3, base_final$escolaridade2)
+prop_escolaridade <- round(prop.table(tab_escolaridade, 2) * 100, 2)
+
+knitr::kable(tab_escolaridade, caption = "Tabela 10: Tempo de deslocamento por escolaridade.")
+knitr::kable(prop_escolaridade, caption = "Tabela 11: Percentual do tempo de deslocamento por escolaridade.")
+
+teste_escolaridade <- chisq.test(tab_escolaridade)
+teste_escolaridade
+```
+
+A escolaridade foi agrupada em três níveis para tornar a comparação mais clara e evitar categorias com frequências pequenas.
+
+## Tempo de deslocamento e renda
+
+```{r renda-boxplot, fig.width=9, fig.height=5}
+base_filtrada <- base_final %>%
+  filter(renda > 0)
+
+ggplot(base_filtrada, aes(
+  x = tempo_deslocamento,
+  y = renda,
+  weight = peso_upt,
+  fill = tempo_deslocamento
+)) +
+  geom_boxplot(outlier.size = 1) +
+  scale_y_log10(
+    labels = label_currency(
+      prefix = "R$",
+      suffix = "",
+      big.mark = ".",
+      decimal.mark = ","
+    )
+  ) +
+  guides(fill = "none") +
+  labs(
+    title = "Renda x tempo de deslocamento",
+    subtitle = "Renda em escala logarítmica de base 10",
+    x = "Tempo de deslocamento",
+    y = "Renda"
+  ) +
+  theme_classic()
+```
+
+O boxplot permite comparar a distribuição da renda entre as faixas de tempo de deslocamento. A escala logarítmica foi utilizada porque a variável renda apresenta valores muito dispersos.
+
+# Discussão
+
+Os resultados indicam que o tempo de deslocamento para o trabalho não se distribui da mesma forma entre todos os grupos analisados. As tabelas de contingência permitem observar diferenças na distribuição do tempo segundo sexo, cor/raça e escolaridade. A análise da renda, por sua vez, mostra a importância de considerar também variáveis quantitativas na compreensão da mobilidade urbana.
+
+Os achados deste trabalho se aproximam da discussão feita por Gonçalves (2024), que analisou os deslocamentos ao trabalho no Distrito Federal com base na PDAD 2021. O artigo mostra que a mobilidade para o trabalho no DF está relacionada a características socioeconômicas da população e aos meios de transporte utilizados. Enquanto Gonçalves (2024) enfatiza os destinos de deslocamento e os modais de transporte, este relatório concentra a análise no tempo de deslocamento e em sua relação com sexo, cor/raça, escolaridade e renda.
+
+Uma limitação deste estudo é o agrupamento de algumas categorias, especialmente em cor/raça, escolaridade e tempo de deslocamento. Esse procedimento foi adotado para evitar frequências muito pequenas nas tabelas, mas reduz o detalhamento da análise. Outra limitação é que a análise é descritiva, permitindo observar associações entre variáveis, mas não estabelecer relações de causalidade.
+
+# Conclusão
+
+A análise evidencia que o tempo de deslocamento para o trabalho é uma variável importante para compreender desigualdades socioespaciais no Distrito Federal. As diferenças observadas entre grupos sociodemográficos sugerem que a mobilidade urbana deve ser analisada em conjunto com características de renda, escolaridade, sexo e cor/raça.
+
+# Referências
+
+GONÇALVES, Caio César Soares. Deslocamento ao trabalho e meios de transporte: uma análise dos grupos populacionais do Distrito Federal. Economia & Região, Londrina, v. 12, n. 1, p. 92-116, jan./abr. 2024. DOI: 10.5433.2317-627X.2024.v12.n1.48469.
+
+R CORE TEAM. R: A language and environment for statistical computing. Vienna: R Foundation for Statistical Computing, 2026.
+
+
+
+

@@ -7,59 +7,72 @@ base_final <- read.csv2("dados/base_final.csv")
 
 # Conferir variáveis
 str(base_final)
-names(base_final)
+names(base_final)  
 
-# # Agrupar tempo em 3 categorias
-# base_final$tempo_deslocamento3 <- as.character(base_final$tempo_deslocamento)
-# 
-# base_final$tempo_deslocamento3[
-#   base_final$tempo_deslocamento %in% c(
-#     "Entre 1 hora e 1 hora e 30 minutos",
-#     "Entre 1 hora e 30 minutos e 2 horas",
-#     "Acima de 2 horas"
-#   )
-# ] <- "Acima de 1 hora"
+# Ordenar tempo de deslocamento
+base_final$tempo_deslocamento <- factor(
+  base_final$tempo_deslocamento,
+  levels = c(
+    "Até 30 minutos",
+    "Entre 30 minutos e 1 hora",
+    "Entre 1 hora e 1 hora e 30 minutos",
+    "Entre 1 hora e 30 minutos e 2 horas",
+    "Acima de 2 horas"
+  ),
+  ordered = TRUE
+)
 
-# base_final$tempo_deslocamento3 <- factor(
-#   base_final$tempo_deslocamento3,
-#   levels = c(
-#     "Até 30 minutos",
-#     "Entre 30 minutos e 1 hora",
-#     "Acima de 1 hora"
-#   ),
-#   ordered = TRUE
-# )
+# Agrupar tempo em 3 categorias
+base_final$tempo_deslocamento3 <- as.character(base_final$tempo_deslocamento)
 
-# # Agrupar cor/raça
-# base_final$cor_raca2 <- base_final$cor_raca
-# 
-# base_final$cor_raca2[base_final$cor_raca == "Amarela"] <- "Outras"
-# base_final$cor_raca2[base_final$cor_raca == "Indígena"] <- "Outras"
+base_final$tempo_deslocamento3[
+  base_final$tempo_deslocamento %in% c(
+    "Entre 1 hora e 1 hora e 30 minutos",
+    "Entre 1 hora e 30 minutos e 2 horas",
+    "Acima de 2 horas"
+  )
+] <- "Acima de 1 hora"
 
-# # Agrupar escolaridade
-# base_final$escolaridade2 <- base_final$escolaridade
-# 
-# base_final$escolaridade2[
-#   base_final$escolaridade %in% c(
-#     "Sem instrução",
-#     "Fundamental incompleto",
-#     "Fundamental completo"
-#   )
-# ] <- "Até fundamental"
-# 
-# base_final$escolaridade2[
-#   base_final$escolaridade %in% c(
-#     "Médio incompleto",
-#     "Médio completo"
-#   )
-# ] <- "Ensino médio"
-# 
-# base_final$escolaridade2[
-#   base_final$escolaridade %in% c(
-#     "Superior incompleto",
-#     "Superior completo"
-#   )
-# ] <- "Superior"
+base_final$tempo_deslocamento3 <- factor(
+  base_final$tempo_deslocamento3,
+  levels = c(
+    "Até 30 minutos",
+    "Entre 30 minutos e 1 hora",
+    "Acima de 1 hora"
+  ),
+  ordered = TRUE
+)
+
+# Agrupar cor/raça
+base_final$cor_raca2 <- base_final$cor_raca
+
+base_final$cor_raca2[base_final$cor_raca == "Amarela"] <- "Outras"
+base_final$cor_raca2[base_final$cor_raca == "Indígena"] <- "Outras"
+
+# Agrupar escolaridade
+base_final$escolaridade2 <- base_final$escolaridade
+
+base_final$escolaridade2[
+  base_final$escolaridade %in% c(
+    "Sem instrução",
+    "Fundamental incompleto",
+    "Fundamental completo"
+  )
+] <- "Até fundamental"
+
+base_final$escolaridade2[
+  base_final$escolaridade %in% c(
+    "Médio incompleto",
+    "Médio completo"
+  )
+] <- "Ensino médio"
+
+base_final$escolaridade2[
+  base_final$escolaridade %in% c(
+    "Superior incompleto",
+    "Superior completo"
+  )
+] <- "Superior"
 
 # Frequências simples
 table(base_final$tempo_deslocamento)
@@ -71,7 +84,8 @@ table(base_final$escolaridade2)
 # Tabelas de contingência
 tab_sexo <- table(base_final$tempo_deslocamento, base_final$sexo)
 
-tab_cor <- table(base_final$tempo_deslocamento3, base_final$cor_raca2)
+tab_cor <- table(base_final$tempo_deslocamento3,
+                 base_final$cor_raca2)
 
 tab_escolaridade <- table(base_final$tempo_deslocamento3,
                           base_final$escolaridade2)
@@ -82,9 +96,9 @@ tab_cor
 tab_escolaridade
 
 # Percentuais por coluna
-prop.table(tab_sexo, 2) * 100
-prop.table(tab_cor, 2) * 100
-prop.table(tab_escolaridade, 2) * 100
+round(prop.table(tab_sexo, 2) * 100, 2)
+round(prop.table(tab_cor, 2) * 100, 2)
+round(prop.table(tab_escolaridade, 2) * 100, 2)
 
 # Testes qui-quadrado
 chisq.test(tab_sexo)
@@ -95,3 +109,7 @@ chisq.test(tab_escolaridade)
 chisq.test(tab_cor)$expected
 chisq.test(tab_escolaridade)$expected
 
+#Visualização das tabelas 
+View(as.data.frame.matrix(tab_sexo))
+View(as.data.frame.matrix(tab_cor))
+View(as.data.frame.matrix(tab_escolaridade))

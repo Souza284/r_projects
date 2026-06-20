@@ -163,8 +163,7 @@ base_final <- base_cruzada %>%
       (tempo_deslocamento == 1 | tempo_deslocamento == 2) ~ "Até 30 minutos",
       (tempo_deslocamento == 3 | tempo_deslocamento == 4) ~ "Entre 30 minutos e 1 hora",
       (tempo_deslocamento == 5 | tempo_deslocamento == 6) ~ "Entre 1 hora e 1 hora e 30 minutos",
-      (tempo_deslocamento == 7 | tempo_deslocamento == 8) ~ "Entre 1 hora e 30 minutos e 2 horas",
-      tempo_deslocamento == 9 ~ "Acima de 2 horas"
+      (tempo_deslocamento == 7 | tempo_deslocamento == 8 | tempo_deslocamento == 9) ~ "Acima de 1 hora e 30 minutos"
     ),
     tempo_deslocamento = factor(
       tempo_deslocamento,
@@ -172,8 +171,7 @@ base_final <- base_cruzada %>%
         "Até 30 minutos",
         "Entre 30 minutos e 1 hora",
         "Entre 1 hora e 1 hora e 30 minutos",
-        "Entre 1 hora e 30 minutos e 2 horas",
-        "Acima de 2 horas"
+        "Acima de 1 hora e 30 minutos"
       )
     ),
     #Sexo
@@ -186,8 +184,7 @@ base_final <- base_cruzada %>%
       cor_raca == 1 ~ "Branca",
       cor_raca == 2 ~ "Preta",
       cor_raca == 3 ~ "Amarela",
-      cor_raca == 4 ~ "Parda",
-      cor_raca == 5 ~ "Indígena"
+      (cor_raca == 4 | cor_raca == 5) ~ "Outros"
     )
   )
 
@@ -197,7 +194,7 @@ View(base_final)
 
 nrow(base_final)
 
-#Total da amostra da base final: 21488
+#Total da amostra da base final: 20521
 base_final %>% 
   group_by(unidade_planejamento) %>% 
   summarise(tot = n())
@@ -344,3 +341,5 @@ base_mapa = st_as_sf(base_mapa)
 # Salvando a base final ---------------------------------------------------
 
 write.csv2(base_final, "dados/base_final.csv")
+
+View(base_final)

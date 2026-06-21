@@ -4,7 +4,7 @@ library(tidyverse)
 # install.packages("readxl")
 library(readxl)
 
-?read.csv
+#?read.csv
 
 #Salvando a base de dados dos moradores.
 dados_brutos_moradores <- read.csv2("dados/PDAD_2021-Moradores.csv")
@@ -216,7 +216,7 @@ base_final %>%
 #posição estrato(estrato do plano amostral) e população ajustada (total de pessoas por estrato)
 
 #SOLUÇÃO: Atribuir os pesos - peso = proporção real da região / proporção da amostra
-install.packages("survey")
+#install.packages("survey")
 library(survey)
 
 #1. Criar uma tabela com as proporções reais da população do DF
@@ -267,36 +267,36 @@ base_final <- base_final %>%
   )
 
 #7. Calcular a distribuição ponderada
-dist_ponderada_ajustada <- base_final %>%
-  group_by(unidade_planejamento) %>%
-  summarise(
-    n_ponderado_ajustado = sum(peso_upt, na.rm = TRUE)
-  ) %>%
-  mutate(
-    prop_ponderada_ajustada = n_ponderado_ajustado / sum(n_ponderado_ajustado, na.rm = TRUE) * 100
-  )
+# dist_ponderada_ajustada <- base_final %>%
+#   group_by(unidade_planejamento) %>%
+#   summarise(
+#     n_ponderado_ajustado = sum(peso_upt, na.rm = TRUE)
+#   ) %>%
+#   mutate(
+#     prop_ponderada_ajustada = n_ponderado_ajustado / sum(n_ponderado_ajustado, na.rm = TRUE) * 100
+#   )
 
 #8. Juntar tudo para comparar
-comparacao_ajustada <- prop_real %>%
-  left_join(dist_bruta, by = "unidade_planejamento") %>%
-  left_join(dist_ponderada_ajustada, by = "unidade_planejamento") %>%
-  mutate(
-    diferenca_bruta = prop_bruta - prop_real,
-    diferenca_ajustada = prop_ponderada_ajustada - prop_real
-  )
+# comparacao_ajustada <- prop_real %>%
+#   left_join(dist_bruta, by = "unidade_planejamento") %>%
+#   left_join(dist_ponderada_ajustada, by = "unidade_planejamento") %>%
+#   mutate(
+#     diferenca_bruta = prop_bruta - prop_real,
+#     diferenca_ajustada = prop_ponderada_ajustada - prop_real
+#   )
 
 #9. Ver o resultado
-print(comparacao_ajustada)
+#print(comparacao_ajustada)
 
 #10. Calcular o erro total
-cat("Erro sem peso:", sum(abs(comparacao_ajustada$diferenca_bruta)), "\n")
-cat("Erro com peso:", sum(abs(comparacao_ajustada$diferenca_ajustada)), "\n")
+#cat("Erro sem peso:", sum(abs(comparacao_ajustada$diferenca_bruta)), "\n")
+#cat("Erro com peso:", sum(abs(comparacao_ajustada$diferenca_ajustada)), "\n")
 
 # Tratando os dados geográficos -------------------------------------------
 
 #Extração dos dados geográficos do IPEDF
 
-install.packages("sf")
+#install.packages("sf")
 library(sf)
 
 #Arquivos: 
@@ -316,27 +316,27 @@ library(sf)
 ##st_intersects: Verifica sobreposição
 ##st_as_sf: Transforma um data frame normal em espacial
 
-dados_espaciais_upt <- st_read("dados/dados_geograficos/UPT.shp")
-View(dados_espaciais_upt)
-
-#Cruzando a base final com os dados espaciais
-
-base_mapa = base_final %>% 
-  select(
-    unidade_planejamento,
-    tempo_deslocamento
-  ) %>% 
-  left_join(
-    dados_espaciais_upt,
-    by = c("unidade_planejamento" = "nome")
-  )
-
-#Geometria do mapa: Multipolígono
-st_geometry_type(dados_espaciais_upt)
-
-#Convertendo para sf
-
-base_mapa = st_as_sf(base_mapa)
+# dados_espaciais_upt <- st_read("dados/dados_geograficos/UPT.shp")
+# View(dados_espaciais_upt)
+# 
+# #Cruzando a base final com os dados espaciais
+# 
+# base_mapa = base_final %>% 
+#   select(
+#     unidade_planejamento,
+#     tempo_deslocamento
+#   ) %>% 
+#   left_join(
+#     dados_espaciais_upt,
+#     by = c("unidade_planejamento" = "nome")
+#   )
+# 
+# #Geometria do mapa: Multipolígono
+# st_geometry_type(dados_espaciais_upt)
+# 
+# #Convertendo para sf
+# 
+# base_mapa = st_as_sf(base_mapa)
 
 # Salvando a base final ---------------------------------------------------
 

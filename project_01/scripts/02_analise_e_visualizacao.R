@@ -1,18 +1,54 @@
-source("scripts/01_tratamento_de_dados.R")
+# Carregamento da base de dados final -------------------------------------
+
+
+base_final <- read.csv2("dados/base_final.csv")
+
+
+# VISUALIZAÇÃO E ANALISE DESCRITIVA ---------------------------------------
+
+
+#1. Fluxo de mobilidade urbana: Proporção do deslocamento das pessoas -------
+
 
 # Pacotes e bibliotecas ---------------------------------------------------
 
-install.packages("matrixStats")
-install.packages("ggdist")
-install.packages("Hmisc")
 
-library(scales)
-library(matrixStats)
-library(ggdist)
-library(Hmisc)
+library(tidyverse)
+
+
+# Onde as pessoas trabalham por UPT de residência: Gráfico de bolhas
+dados_bolhas <- base_final %>%
+  group_by(unidade_planejamento, local_trabalho) %>%
+  summarise(n = sum(peso_upt, na.rm = TRUE), .groups = 'drop')
+
+ggplot(dados_bolhas, aes(x = unidade_planejamento, y = local_trabalho, size = n)) +
+  geom_point(alpha = 0.8, color = "#2c3e50") +
+  scale_size_continuous(range = c(2, 15)) +
+  theme_minimal() +
+  labs(title = "Residência X Local de trabalho",
+       subtitle = "Relação entre UPT de residência e local de trabalho",
+       x = "Unidade de Planejamento (Residência)",
+       y = "Local de Trabalho",
+       size = "Pop. Ponderada") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
+# 2. Composição do tempo de deslocamento de cada UPT ----------------------
+
+
+# Pacotes e bibliotecas ---------------------------------------------------
+
+
+#install.packages("sf")
+library(sf)
 
 
 # UPT X Tempo de deslocamento ---------------------------------------------
+
+
+# Mapa de composição: cada UPT recebe uma coloração específica do gradiente de cor
+# contínuo associada a proporção de cada faixa de tempo dentro da UPT
+
 
 #Carregando os dados geográficos
 
@@ -43,12 +79,13 @@ names(proporcoes_upt) <- c(
   "prop_30min_1h",
   "prop_1h_1h30",
   "prop_1h30_mais"
-  )
+)
 
 base_mapa <- dados_espaciais_upt %>% 
   left_join(proporcoes_upt, by = c("nome" = "unidade_planejamento"))
 
 #Calcular o índice de tempo (média ponderada das categorias)
+
 base_mapa <- base_mapa %>%
   mutate(
     # Cada categoria recebe um peso: 1 (até 30 min) a 4 (acima de 90 min)
@@ -58,12 +95,9 @@ base_mapa <- base_mapa %>%
       prop_1h30_mais * 4
   )
 
-
-View(base_mapa_final)
-
 #Desenhando o mapa
 
-?geom_sf
+#?geom_sf
 
 ggplot(base_mapa) +
   geom_sf(aes(fill = indice_tempo)) +
@@ -82,29 +116,70 @@ ggplot(base_mapa) +
   ) +
   theme_void()
 
-# Tempo de deslocamento X UPT ---------------------------------------------
 
-#Gráfico coroplético: Mapa com regiões coloridas ou hachuradas proporcionalmente
-#ao valor de uma variável. A cor de cada região é gerado por meio de uma média ponderada
-#das cores atribuídas as proporções de cada faixa de tempo de cada UPT.
-
-View(base_mapa)
+# 3. Relação do meio de transporte com o tempo de deslocamento ------------
 
 
-# Tempo de deslocamento X Renda -------------------------------------------
+# Selecionando os 5 meios de transportes mais utilizados
+
+top5 <- base_final %>%
+  count(meio_transporte, wt = peso_upt) %>%
+  slice_max(n, n = 5) %>%
+  pull(meio_transporte)
+
+# Criando uma base filtrada com os meios de transporte mais utilizados e seus tempos
+
+base_transporte_tempo <- base_final %>%
+  filter(meio_transporte %in% top5) %>%
+  group_by(meio_transporte, tempo_deslocamento) %>%
+  summarise(n = sum(peso_upt, na.rm = TRUE), .groups = 'drop') %>%
+  group_by(meio_transporte) %>%
+  mutate(prop = n / sum(n))
+
+# Gráfico de barras empilhadas da proporção do tempo de deslocamento por meio de transporte
+
+ggplot(base_transporte_tempo, aes(x = meio_transporte, y = prop, fill = tempo_deslocamento)) +
+  geom_col(position = "fill") +
+  theme_minimal() +
+  scale_fill_viridis_d() +
+  labs(title = "Transporte x Tempo de Deslocamento",
+       x = "Meio de Transporte",
+       y = "Proporção",
+       fill = "Tempo de Deslocamento") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
+
+install.packages("matrixStats")
+install.packages("ggdist")
+
+library(tidyverse)
+library(matrixStats)
+
+
+# 4. Correlação do tempo de deslocamento com a renda -------------------------
+
+
+# Pacotes e bibliotecas ---------------------------------------------------
+
+
+#install.packages("Hmisc")
+
+library(Hmisc)
+library(scales)
+
 
 #Mostrar graficamente a relação entre renda e o tempo de deslocamento para o trabalho mediante boxplot
-
-base_filtrada_renda <- base_final %>% 
-  filter(renda > 0)
-
 
 #Ao usar a escala contínua para a renda, a posição relativa das caixas é quase nula,
 #devido a presença de valores extremamente discrepantes que deturpam a escala do gráfico.
 
-#Solução: Usar escala log10
+#SOLUÇÃO: Usar escala log10
 
-ggplot(base_filtrada_renda, aes (x = tempo_deslocamento, y = renda, weight = peso_upt, fill = tempo_deslocamento)) +
+#Boxplot: Tempo de deslocamento X Renda
+
+
+ggplot(base_final, aes (x = tempo_deslocamento, y = renda, weight = peso_upt, fill = tempo_deslocamento)) +
   geom_boxplot(outlier.size = 1) +
   scale_y_log10(
     labels = label_currency(
@@ -155,3 +230,67 @@ var_dentro <- base_filtrada_renda %>%
 r2 <- 1 - (var_dentro/var_total)
 
 
+
+# 5 . Relação do tempo de deslocamento com características sociodemográficas --------
+
+
+# Pacotes e bibliotecas ---------------------------------------------------
+
+#install.packages("DescTools")
+
+library(DescTools)
+
+# Reagrupamento de variáveis (certas categorias tem poucas observações)
+
+
+base_reagrupada <- base_final %>%
+  mutate(
+    # Tempo agrupado
+    tempo_agrupado = case_when(
+      tempo_deslocamento %in% c("Até 30 minutos") ~ "Até 30 min",
+      tempo_deslocamento %in% c("Entre 30 minutos e 1 hora") ~ "30-60 min",
+      tempo_deslocamento %in% c("Entre 1 hora e 1 hora e 30 minutos", 
+                                "Entre 1 hora e 30 minutos e 2 horas",
+                                "Acima de 2 horas") ~ "Acima de 1 hora"
+    ),
+    # Cor/raça agrupada
+    cor_agrupada = case_when(
+      cor_raca %in% c("Branca", "Preta", "Parda") ~ cor_raca,
+      TRUE ~ "Outras"
+    ),
+    # Escolaridade agrupada
+    escolaridade_agrupada = case_when(
+      escolaridade %in% c("Sem instrução", "Fundamental incompleto", "Fundamental completo") ~ "Até fundamental",
+      escolaridade %in% c("Médio incompleto", "Médio completo") ~ "Ensino médio",
+      escolaridade %in% c("Superior incompleto", "Superior completo") ~ "Superior"
+    )
+  ) %>% 
+  mutate(
+    tempo_agrupado = factor(
+      tempo_agrupado,
+      levels = c(
+        "Até 30 min",
+        "30-60 min",
+        "Acima de 1 hora"
+      ),
+      ordered = TRUE
+    )
+  )
+
+?xtabs
+
+# Tabelas de contingência (com os pesos)
+tab_sexo <- xtabs(peso_upt ~ tempo_deslocamento + sexo, data = base_reagrupada)
+tab_cor <- xtabs(peso_upt ~ tempo_agrupado + cor_agrupada, data = base_reagrupada)
+tab_escolaridade <- xtabs(peso_upt ~ tempo_agrupado + escolaridade_agrupada, data = base_reagrupada)
+
+# Qui-quadrado
+chisq.test(tab_sexo)
+chisq.test(tab_cor)
+chisq.test(tab_escolaridade)
+
+# Coeficiente Gamma para Tempo X Escolaridade
+
+gamma <- GoodmanKruskalGamma(tab_escolaridade)
+
+#Gamma ≃ -0.12

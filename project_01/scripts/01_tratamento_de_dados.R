@@ -1,8 +1,6 @@
 # Importando a base de dados PDAD2021 do IPEDF ----------------------------------------------
 
-library(tidyverse)
-# install.packages("readxl")
-library(readxl)
+#library(tidyverse)
 
 #?read.csv
 
@@ -18,6 +16,7 @@ dados_brutos_domicilios <- read.csv2("dados/PDAD_2021-Domicilios(1).csv")
 
 # Variáveis ---------------------------------------------------------------
 
+
 # Regiao administrativa - Categórica nominal (A01ra).
 # Local de trabalho - Categórica nominal (I08).
 # Meio de transporte - Categorica nominal (I09_8).
@@ -27,7 +26,9 @@ dados_brutos_domicilios <- read.csv2("dados/PDAD_2021-Domicilios(1).csv")
 # Tempo - Categorica ordinal (I10).
 # Renda - Quantitativa continua (renda_ind_r).
 
+
 # Tratamento e manipulação dos dados --------------------------------------
+
 
 #Cruzando as bases de dados pelo número da ficha do morador e domicílio.
 base_cruzada <- dados_brutos_moradores %>% 
@@ -58,7 +59,7 @@ base_final <- base_cruzada %>%
     escolaridade != 99999 & escolaridade != 88888 & escolaridade != 8,
     sexo != 99999 & sexo != 88888,
     cor_raca != 99999 & cor_raca != 88888,
-    !is.na(renda),
+    !is.na(renda) & renda != 0,
   ) %>% 
   #Ordena em ordem crescente as Unidades de Planejamento Territoriais e as regiões administrativas.
   arrange(unidade_planejamento, regiao_administrativa) %>% 
@@ -188,36 +189,36 @@ base_final <- base_cruzada %>%
     )
   )
 
-View(base_final)
 
 # Conferindo a distribuição da amostra ------------------------------------
 
+
 nrow(base_final)
 
-#Total da amostra da base final: 20521
+#Total da amostra da base final: 20088
 base_final %>% 
   group_by(unidade_planejamento) %>% 
   summarise(tot = n())
 
 #Distribuição bruta
-# 1 Central               4950
-# 2 Central Adjacente 1   1683
-# 3 Central Adjacente 2   5298
-# 4 Oeste                 2992
-# 5 Sul                   1756
-# 6 Leste                 3182
-# 7 Norte                 1627
+# 1 Central               4770
+# 2 Central Adjacente 1   1630
+# 3 Central Adjacente 2   5910
+# 4 Oeste                 2773
+# 5 Sul                   1612
+# 6 Leste                 2922
+# 7 Norte                 1471
 
 #AMOSTRA ENVIESADA!
 
+
 # Retirar o viés da amostra -----------------------------------------------
+
 
 #No banco de dados, existem variáveis que corrigem isso: peso dos moradores (fator de expansão),
 #posição estrato(estrato do plano amostral) e população ajustada (total de pessoas por estrato)
 
 #SOLUÇÃO: Atribuir os pesos - peso = proporção real da região / proporção da amostra
-#install.packages("survey")
-library(survey)
 
 #1. Criar uma tabela com as proporções reais da população do DF
 prop_real <- data.frame(
@@ -292,53 +293,9 @@ base_final <- base_final %>%
 #cat("Erro sem peso:", sum(abs(comparacao_ajustada$diferenca_bruta)), "\n")
 #cat("Erro com peso:", sum(abs(comparacao_ajustada$diferenca_ajustada)), "\n")
 
-# Tratando os dados geográficos -------------------------------------------
-
-#Extração dos dados geográficos do IPEDF
-
-#install.packages("sf")
-library(sf)
-
-#Arquivos: 
-##.shp: Coordenadas para o desenho dos polígonos
-##.shx: Índice/sumario de geometria
-##.dbf: Dados como área, código etc
-##.prj: Sistema de projeção
-##.cpg: Codificação de caracteres
-
-#Funções do sf:
-##st_read: Lê o shapefile
-##st_geometry: Extrai a geometria dos dados
-##st_crs: Verifica ou define o sistema de projeção
-##st_transform: Altera o sistema de projeção
-##st_centroid: Calcula o centro de cada polígono
-##st_area: Calcula a área de cada polígono
-##st_intersects: Verifica sobreposição
-##st_as_sf: Transforma um data frame normal em espacial
-
-# dados_espaciais_upt <- st_read("dados/dados_geograficos/UPT.shp")
-# View(dados_espaciais_upt)
-# 
-# #Cruzando a base final com os dados espaciais
-# 
-# base_mapa = base_final %>% 
-#   select(
-#     unidade_planejamento,
-#     tempo_deslocamento
-#   ) %>% 
-#   left_join(
-#     dados_espaciais_upt,
-#     by = c("unidade_planejamento" = "nome")
-#   )
-# 
-# #Geometria do mapa: Multipolígono
-# st_geometry_type(dados_espaciais_upt)
-# 
-# #Convertendo para sf
-# 
-# base_mapa = st_as_sf(base_mapa)
 
 # Salvando a base final ---------------------------------------------------
+
 
 write.csv2(base_final, "dados/base_final.csv")
 

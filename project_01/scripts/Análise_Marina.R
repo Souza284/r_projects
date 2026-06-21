@@ -3,24 +3,24 @@
 library(tidyverse)
 
 # Importar base
-base_final <- read.csv2("dados/base_final.csv")
+# base_final <- read.csv2("dados/base_final.csv")
 
-# Conferir variáveis
-str(base_final)
-names(base_final)  
+# # Conferir variáveis
+# str(base_final)
+# names(base_final)  
 
-# Ordenar tempo de deslocamento
-base_final$tempo_deslocamento <- factor(
-  base_final$tempo_deslocamento,
-  levels = c(
-    "Até 30 minutos",
-    "Entre 30 minutos e 1 hora",
-    "Entre 1 hora e 1 hora e 30 minutos",
-    "Entre 1 hora e 30 minutos e 2 horas",
-    "Acima de 2 horas"
-  ),
-  ordered = TRUE
-)
+# # Ordenar tempo de deslocamento
+# base_final$tempo_deslocamento <- factor(
+#   base_final$tempo_deslocamento,
+#   levels = c(
+#     "Até 30 minutos",
+#     "Entre 30 minutos e 1 hora",
+#     "Entre 1 hora e 1 hora e 30 minutos",
+#     "Entre 1 hora e 30 minutos e 2 horas",
+#     "Acima de 2 horas"
+#   ),
+#   ordered = TRUE
+# )
 
 # Agrupar tempo em 3 categorias
 base_final$tempo_deslocamento3 <- as.character(base_final$tempo_deslocamento)

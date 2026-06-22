@@ -300,24 +300,14 @@ Os diferentes meios de transporte apresentam distribuições distintas de tempo 
 tab_sexo <- xtabs(peso_upt ~ tempo_deslocamento + sexo, data = base_final)
 prop_sexo <- round(prop.table(tab_sexo, 2) * 100, 2)
 
-kable(tab_sexo, digits = 2, caption = "Tabela 7: Tempo de deslocamento por sexo, com ponderação.")
-kable(prop_sexo, digits = 2, caption = "Tabela 8: Percentual do tempo de deslocamento por sexo, com ponderação por coluna.")
+kable(prop_sexo, digits = 2, caption = "Tabela 7: Percentual do tempo de deslocamento por sexo, com ponderação.")
 
 teste_sexo <- chisq.test(tab_sexo)
-teste_sexo
 ```
 
-```{r interpretar-sexo, echo=FALSE}
-cat(
-  "Resultado do teste Qui-quadrado para sexo: X² =",
-  round(unname(teste_sexo$statistic), 2),
-  "; gl =", unname(teste_sexo$parameter),
-  "; p-valor =", format.pval(teste_sexo$p.value, digits = 3),
-  ".\n"
-)
-```
+Os percentuais por coluna permitem comparar a distribuição do tempo de deslocamento dentro de cada grupo de sexo.
 
-Os percentuais por coluna permitem comparar a distribuição do tempo de deslocamento dentro de cada grupo de sexo. O teste Qui-quadrado avalia se há associação estatística entre sexo e tempo de deslocamento.
+O teste Qui-quadrado não indicou associação estatisticamente significativa entre sexo e tempo de deslocamento (χ² = 2,45; gl = 3; p = 0,485). Dessa forma, não há evidências de que a distribuição dos tempos de deslocamento seja diferente entre homens e mulheres na amostra analisada.
 
 ## Tempo de deslocamento e cor/raça
 
@@ -325,24 +315,15 @@ Os percentuais por coluna permitem comparar a distribuição do tempo de desloca
 tab_cor <- xtabs(peso_upt ~ tempo_agrupado + cor_agrupada, data = base_final)
 prop_cor <- round(prop.table(tab_cor, 2) * 100, 2)
 
-kable(tab_cor, digits = 2, caption = "Tabela 9: Tempo de deslocamento por cor/raça agrupada, com ponderação.")
-kable(prop_cor, digits = 2, caption = "Tabela 10: Percentual do tempo de deslocamento por cor/raça agrupada, com ponderação por coluna.")
+kable(prop_cor, digits = 2, caption = "Tabela 8: Percentual do tempo de deslocamento por cor/raça agrupada, com ponderação por coluna.")
 
 teste_cor <- chisq.test(tab_cor)
-teste_cor
 ```
 
-```{r interpretar-cor, echo=FALSE}
-cat(
-  "Resultado do teste Qui-quadrado para cor/raça: X² =",
-  round(unname(teste_cor$statistic), 2),
-  "; gl =", unname(teste_cor$parameter),
-  "; p-valor =", format.pval(teste_cor$p.value, digits = 3),
-  ".\n"
-)
-```
+A variável cor/raça foi analisada com categorias agrupadas para evitar frequências muito baixas em algumas classes.
 
-A variável cor/raça foi analisada com categorias agrupadas porque algumas categorias tinham baixa frequência. Esse agrupamento reduz problemas nas tabelas de contingência e facilita a interpretação.
+O teste Qui-quadrado indicou associação estatisticamente significativa entre cor/raça e tempo de deslocamento (χ² = 130,07; gl = 4; p < 0,001). Esse resultado sugere que a distribuição dos tempos de deslocamento não é a mesma entre os diferentes grupos raciais considerados na análise.
+
 
 ## Tempo de deslocamento e escolaridade
 
@@ -358,7 +339,7 @@ prop_escolaridade <- round(prop.table(tab_escolaridade, 2) * 100, 2)
 kable(
   prop_escolaridade,
   digits = 2,
-  caption = "Tabela 11: Percentual do tempo de deslocamento por escolaridade agrupada, com ponderação por coluna."
+  caption = "Tabela 9: Percentual do tempo de deslocamento por escolaridade agrupada, com ponderação por coluna."
 )
 
 teste_escolaridade <- chisq.test(tab_escolaridade)
@@ -435,7 +416,7 @@ ggplot(base_mapa) +
     mid = "#fdae61",
     high = "#d7191c",
     midpoint = 2,
-    name = "Índice de tempo\n(1 = baixo, 4 = alto)"
+    name = "Índice de tempo\n(1 = baixo, 2 = alto)"
   ) +
   geom_sf_label(
     aes(label = nome),
@@ -450,7 +431,6 @@ ggplot(base_mapa) +
   theme_void()
 
 ```
-```
 
 ## Tempo de deslocamento e renda
 
@@ -458,53 +438,32 @@ ggplot(base_mapa) +
 base_filtrada_renda <- base_final %>%
   filter(!is.na(renda), renda > 0, !is.na(tempo_deslocamento), !is.na(peso_upt))
 
-ggplot(base_filtrada_renda, aes(
-  x = tempo_deslocamento,
-  y = renda,
-  weight = peso_upt,
-  fill = tempo_deslocamento
-)) +
+ggplot(base_final, aes (x = tempo_deslocamento, y = renda, weight = peso_upt, fill = tempo_deslocamento)) +
   geom_boxplot(outlier.size = 1) +
   scale_y_log10(
     labels = label_currency(
-      prefix = "R$ ",
+      prefix = "R$",
       suffix = "",
       big.mark = ".",
       decimal.mark = ","
     )
   ) +
-  guides(fill = "none") +
+  scale_fill_manual(
+    values = c("#D7C1A8", "#A28C75", "#825b45", "#6C5141")
+  ) +
+  guides(
+    fill = FALSE
+  ) +
   labs(
-    title = "Renda x tempo de deslocamento",
-    subtitle = "Renda representada em escala logarítmica de base 10",
+    title = "Renda X Tempo de deslocamento",
+    subtitle = "Renda representada pela escala logaritmica de base 10",
     x = "Tempo de deslocamento",
     y = "Renda"
   ) +
-  theme_classic() +
-  theme(axis.text.x = element_text(angle = 30, hjust = 1))
+  theme_classic()
 ```
 
 O boxplot permite comparar a distribuição da renda entre as faixas de tempo de deslocamento. A escala logarítmica foi utilizada porque a variável renda apresenta valores muito dispersos.
-
-```{r resumo-renda}
-resumo_renda <- base_filtrada_renda %>%
-  group_by(tempo_deslocamento) %>%
-  summarise(
-    n_ponderado = sum(peso_upt, na.rm = TRUE),
-    media_ponderada = weighted.mean(renda, peso_upt, na.rm = TRUE),
-    mediana = median(renda, na.rm = TRUE),
-    .groups = "drop"
-  ) %>%
-  mutate(
-    media_ponderada = round(media_ponderada, 2),
-    mediana = round(mediana, 2)
-  )
-
-kable(
-  resumo_renda,
-  caption = "Tabela 13: Medidas resumo da renda por tempo de deslocamento."
-)
-```
 
 # Discussão
 

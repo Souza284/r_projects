@@ -1,8 +1,12 @@
 ---
 title: "Tempo de deslocamento para o trabalho e características sociodemográficas no Distrito Federal"
-author: "Daniel Pereira, Marina Amorim Ferreira e Pedro Souza Feres Kanaan "
+author: "Daniel Sobrenome, Marina Amorim Ferreira e Pedro Souza Feres Kanaan "
 date: "`r Sys.Date()`"
 output:
+  html_document:
+    toc: true
+    toc_depth: 2
+    number_sections: true
   word_document: default
 ---
 

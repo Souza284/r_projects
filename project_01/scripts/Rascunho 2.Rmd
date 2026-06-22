@@ -1,8 +1,9 @@
 ---
 title: "Tempo de deslocamento para o trabalho e características sociodemográficas no Distrito Federal"
-author: "Daniel Sobrenome, Marina Amorim Ferreira e Pedro Souza Feres Kannan "
+author: "Daniel Sobrenome, Marina Amorim Ferreira e Pedro Souza Feres Kanaan "
 date: "`r Sys.Date()`"
 output:
+  word_document: default
   html_document:
     toc: true
     toc_depth: 2
@@ -26,22 +27,22 @@ library(DescTools)
 
 # Introdução
 
-Este trabalho analisa o tempo de deslocamento para o trabalho no Distrito Federal, considerando características sociodemográficas e territoriais da população. O objetivo é investigar como o tempo gasto no trajeto se distribui segundo sexo, cor/raça, escolaridade, renda, meio de transporte e Unidade de Planejamento Territorial (UPT).
+A população do Distrito Federal cresceu substancialmente nas últimas decadas, apresentando um crescimento populacional de 45% ao longo do século XXI (IBGE, 2022). Nesse prisma, o aumento expressivo de pessoas em busca de trabalho desafiou os limites físicos e opreacionais da mobilidade urbana, a qual não consegue suprir as demandas dos trabalhadores. Por conseguinte, distintos grupos sociais de diferentes regiões administrativas estão sujeitos a perspectivas únicas no trajéto diário ao local de trabalho, com os grupos periféricos realizando um movimento pendular nessa conjuntura. Nesse contexto, este trabalho analisa o tempo de deslocamento para o trabalho no Distrito Federal, considerando características sociodemográficas e territoriais da população.Portanto, o objetivo é investigar como o tempo gasto no trajeto se distribui conforme sexo, cor/raça, escolaridade, renda, meio de transporte e Unidade de Planejamento Territorial (UPT).
 
-A análise utiliza os microdados da Pesquisa Distrital por Amostra de Domicílios (PDAD 2021), realizada pelo Instituto de Pesquisa e Estatística do Distrito Federal (IPEDF). O tema é relevante porque a mobilidade urbana influencia o acesso ao emprego, aos serviços urbanos e à qualidade de vida, especialmente em um contexto marcado pela concentração de postos de trabalho em determinadas regiões do Distrito Federal.
+A análise utiliza os microdados da Pesquisa Distrital por Amostra de Domicílios (PDAD 2021), realizada pelo Instituto de Pesquisa e Estatística do Distrito Federal (IPEDF). Analisar e entender as diferênças no que tange ao tempo de deslocamento de diferentes pessoas distribuidas no DF é de extrema importância para a comunidade, pois a mobilidade urbana influencia o acesso ao emprego, aos serviços urbanos e à qualidade de vida, especialmente em um contexto marcado pela concentração de postos de trabalho em determinadas regiões do Distrito Federal.
 
 Este estudo dialoga com a pesquisa de Gonçalves (2024), que analisou os deslocamentos ao trabalho e os meios de transporte utilizados pela população do Distrito Federal. A partir dessa discussão, busca-se compreender de que forma o tempo de deslocamento se relaciona com características socioeconômicas e territoriais dos trabalhadores.
 
-As questões que orientam a análise são: como se distribui o tempo de deslocamento para o trabalho? Existem diferenças segundo sexo, cor/raça e escolaridade? Como a renda varia entre as diferentes faixas de tempo de deslocamento? E de que forma os meios de transporte e a localização territorial se relacionam com o tempo gasto nos trajetos?
+As questões que orientam a análise são: como é a proporção do fluxo de deslocamento entre as regiões do DF? Como é a composição do tempo de trabalho entre cada região do DF? Como é a distribuição do tempo de acordo com o meio de transporte? Existem diferenças no tempo de deslocamento conforme sexo, cor/raça e escolaridade? A renda do morador tem correlação com o tempo de demora para chegar no trabalho?
 
 
-# Métodos
+# Metodologia
 
-Foram utilizados os microdados da Pesquisa Distrital por Amostra de Domicílios (PDAD 2021), organizados na base `base_final.csv`, construída a partir do cruzamento das bases de moradores e domicílios e da seleção das variáveis de interesse para o estudo.
+A pesquisa de campo, conduzida pelo Instituto de Pesquisa e Estatística do Distrito Federal com 83.482 pessoas, utilizou como análise as 33 regiões administrativas do Distrito Federal, agrupadas em 7 Unidades de Planejamento Territorial (UPT). O delineamento amostral baseou-se na estratificação dos moradores por UPT, e o fator de expansão - representado pelo peso_upt nesta análise - foi empregado para estimar a proproção de observações semelhantes em relação a distribuição real da população, minimizando o viés amostral. 
 
-Para reduzir distorções decorrentes da distribuição desigual da amostra entre as Unidades de Planejamento Territorial (UPTs), foi utilizado um peso amostral por UPT (`peso_upt`), calculado a partir da relação entre a participação populacional de cada UPT e sua participação na amostra.
+A amostra final deste estudo é composta por 20089 indivíduos com respostas válidas para todas as variáveis de interesse: UPT de residência (unidade_planejamento), local de trabalho (local_trabalho), meio de transporte (meio_transporte), tempo de deslocamento (tempo_deslocamento), renda, sexo, cor ou raça (cor_raca) e escolaridade. Nessa lógica, os dados foram selecionados, filtrados, organizados e armazenados no arquivo `base_final.csv`, construída a partir do cruzamento das bases de moradores e domicílios. 
 
-As análises foram realizadas no software R por meio de tabelas de frequência, tabelas de contingência ponderadas, percentuais por coluna, teste Qui-quadrado de independência, coeficiente Gamma para variáveis ordinais e representações gráficas, incluindo gráficos de barras, mapa temático, gráfico de bolhas e boxplot.
+As análises foram realizadas no software R por meio de tabelas de frequência, tabelas de contingência, percentuais por coluna, teste Qui-quadrado de independência, coeficiente Gamma para variáveis ordinais e representações gráficas, incluindo gráficos de barras, mapa temático, gráfico de bolhas e boxplot.
 
 ```{r importar-dados, include=FALSE}
 base_final <- read.csv2("base_final.csv")
@@ -161,63 +162,101 @@ base_final <- base_final %>%
 ## Distribuição da amostra e ponderação
 
 ```{r distribuicao-amostra}
-dist_bruta <- base_final %>%
+# dist_bruta <- base_final %>%
+#   count(unidade_planejamento, name = "n_bruto") %>%
+#   mutate(prop_bruta = n_bruto / sum(n_bruto) * 100)
+# 
+# dist_ponderada <- base_final %>%
+#   group_by(unidade_planejamento) %>%
+#   summarise(n_ponderado = sum(peso_upt, na.rm = TRUE), .groups = "drop") %>%
+#   mutate(prop_ponderada = n_ponderado / sum(n_ponderado) * 100)
+# 
+# comparacao_upt <- dist_bruta %>%
+#   left_join(dist_ponderada, by = "unidade_planejamento") %>%
+#   mutate(
+#     prop_bruta = round(prop_bruta, 2),
+#     n_ponderado = round(n_ponderado, 2),
+#     prop_ponderada = round(prop_ponderada, 2)
+#   )
+# 
+# kable(
+#   comparacao_upt,
+#   caption = "Tabela 2: Distribuição bruta e ponderada da amostra por UPT."
+
+tabela_upt <- base_final %>%
   count(unidade_planejamento, name = "n_bruto") %>%
-  mutate(prop_bruta = n_bruto / sum(n_bruto) * 100)
-
-dist_ponderada <- base_final %>%
-  group_by(unidade_planejamento) %>%
-  summarise(n_ponderado = sum(peso_upt, na.rm = TRUE), .groups = "drop") %>%
-  mutate(prop_ponderada = n_ponderado / sum(n_ponderado) * 100)
-
-comparacao_upt <- dist_bruta %>%
-  left_join(dist_ponderada, by = "unidade_planejamento") %>%
+  mutate(prop_bruta = round(n_bruto / sum(n_bruto) * 100, 1)) %>%
+  left_join(
+    base_final %>%
+      group_by(unidade_planejamento) %>%
+      summarise(n_ponderado = sum(peso_upt, na.rm = TRUE)) %>%
+      mutate(prop_ponderada = round(n_ponderado / sum(n_ponderado) * 100, 1)) %>%
+      select(unidade_planejamento, prop_ponderada),
+    by = "unidade_planejamento"
+  ) %>%
   mutate(
-    prop_bruta = round(prop_bruta, 2),
-    n_ponderado = round(n_ponderado, 2),
-    prop_ponderada = round(prop_ponderada, 2)
+    diferenca = prop_ponderada - prop_bruta,
+    diferenca = round(diferenca, 1)
   )
 
 kable(
-  comparacao_upt,
-  caption = "Tabela 2: Distribuição bruta e ponderada da amostra por UPT."
+  tabela_upt,
+  caption = "Tabela 2: Distribuição bruta e ponderada da amostra por UPT.",
+  col.names = c("UTP", "N", "% bruto", "% ponderado", "Diferença")
 )
 ```
 
-Observa-se que a amostra apresenta distribuição desigual entre as UPTs. Por isso, as análises seguintes utilizam o peso `peso_upt`, buscando aproximar os resultados da distribuição populacional das regiões.
+Observa-se que a amostra apresenta distribuição desigual entre as UPTs. Por isso, ao utilizar o fator de expansão, o viés da amostra é mitigado.
 
 ## Frequências simples ponderadas
 
 ```{r frequencias-ponderadas}
+
+# 1. Tempo de deslocamento
 freq_tempo <- base_final %>%
   group_by(tempo_deslocamento) %>%
-  summarise(n_ponderado = sum(peso_upt, na.rm = TRUE), .groups = "drop") %>%
-  mutate(percentual = n_ponderado / sum(n_ponderado) * 100)
+  summarise(n = round(sum(peso_upt, na.rm = TRUE), 0)) %>%
+  mutate(percentual = round(n / sum(n) * 100, 1))
 
+# 2. Sexo
 freq_sexo <- base_final %>%
   group_by(sexo) %>%
-  summarise(n_ponderado = sum(peso_upt, na.rm = TRUE), .groups = "drop") %>%
-  mutate(percentual = n_ponderado / sum(n_ponderado) * 100)
+  summarise(n = round(sum(peso_upt, na.rm = TRUE), 0)) %>%
+  mutate(percentual = round(n / sum(n) * 100, 1))
 
+# 3. Cor/raça agrupada
 freq_cor <- base_final %>%
   group_by(cor_agrupada) %>%
-  summarise(n_ponderado = sum(peso_upt, na.rm = TRUE), .groups = "drop") %>%
-  mutate(percentual = n_ponderado / sum(n_ponderado) * 100)
+  summarise(n = round(sum(peso_upt, na.rm = TRUE), 0)) %>%
+  mutate(percentual = round(n / sum(n) * 100, 1))
 
+# 4. Escolaridade agrupada
 freq_escolaridade <- base_final %>%
   group_by(escolaridade_agrupada) %>%
-  summarise(n_ponderado = sum(peso_upt, na.rm = TRUE), .groups = "drop") %>%
-  mutate(percentual = n_ponderado / sum(n_ponderado) * 100)
+  summarise(n = round(sum(peso_upt, na.rm = TRUE), 0)) %>%
+  mutate(percentual = round(n / sum(n) * 100, 1))
 
-kable(freq_tempo, digits = 2, caption = "Tabela 3: Frequência ponderada do tempo de deslocamento.")
-kable(freq_sexo, digits = 2, caption = "Tabela 4: Frequência ponderada por sexo.")
-kable(freq_cor, digits = 2, caption = "Tabela 5: Frequência ponderada por cor/raça agrupada.")
-kable(freq_escolaridade, digits = 2, caption = "Tabela 6: Frequência ponderada por escolaridade agrupada.")
+# Tabelas com kable
+kable(freq_tempo, 
+      caption = "Tabela 3: Distribuição ponderada do tempo de deslocamento.",
+      col.names = c("Tempo de deslocamento", "N (ponderado)", "%"))
+
+kable(freq_sexo, 
+      caption = "Tabela 4: Distribuição ponderada por sexo.",
+      col.names = c("Sexo", "N (ponderado)", "%"))
+
+kable(freq_cor, 
+      caption = "Tabela 5: Distribuição ponderada por cor/raça agrupada.",
+      col.names = c("Cor/raça", "N (ponderado)", "%"))
+
+kable(freq_escolaridade, 
+      caption = "Tabela 6: Distribuição ponderada por escolaridade agrupada.",
+      col.names = c("Escolaridade", "N (ponderado)", "%"))
 ```
 
 ## Fluxo entre residência e local de trabalho
 
-```{r grafico-bolhas, fig.width=10, fig.height=6}
+```{r grafico-bolhas, fig.width=12, fig.height=8}
 dados_bolhas <- base_final %>%
   group_by(unidade_planejamento, local_trabalho) %>%
   summarise(n = sum(peso_upt, na.rm = TRUE), .groups = "drop")
@@ -236,130 +275,16 @@ ggplot(dados_bolhas, aes(x = unidade_planejamento, y = local_trabalho, size = n)
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
-O gráfico de bolhas permite observar os fluxos entre a UPT de residência e a UPT do local de trabalho. Bolhas maiores indicam maior número ponderado de pessoas naquele fluxo.
+O fluxo de locomoção entre as UPTs é representado pelo gráfico de bolhas. Quanto maior a bolha, maior a concentração de pessoas que trabalham naquela localidade. Nesse sentido, é possível observar que as maiores bolhas se encontram na central, isto é, uma proporção considerável de pessoas se deslocam para as unidades centrais do Distrito Federal.
 
-## Tempo de deslocamento por UPT
-
-```{r tempo-por-upt, fig.width=10, fig.height=6}
-dados_tempo_upt <- base_final %>%
-  group_by(unidade_planejamento, tempo_deslocamento) %>%
-  summarise(n = sum(peso_upt, na.rm = TRUE), .groups = "drop") %>%
-  group_by(unidade_planejamento) %>%
-  mutate(prop = n / sum(n)) %>%
-  ungroup()
-
-ggplot(dados_tempo_upt, aes(x = unidade_planejamento, y = prop, fill = tempo_deslocamento)) +
-  geom_col(position = "fill") +
-  scale_y_continuous(labels = percent_format(decimal.mark = ",")) +
-  labs(
-    title = "Composição do tempo de deslocamento por UPT",
-    x = "Unidade de Planejamento Territorial",
-    y = "Proporção",
-    fill = "Tempo de deslocamento"
-  ) +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-```
-
-Esse gráfico mostra como as faixas de tempo de deslocamento se distribuem dentro de cada UPT.
-
-## Tempo de deslocamento e meio de transporte
-
-```{r transporte-tempo, fig.width=10, fig.height=6}
-top5_transportes <- base_final %>%
-  count(meio_transporte, wt = peso_upt, name = "n") %>%
-  slice_max(n, n = 5) %>%
-  pull(meio_transporte)
-
-base_transporte_tempo <- base_final %>%
-  filter(meio_transporte %in% top5_transportes) %>%
-  group_by(meio_transporte, tempo_deslocamento) %>%
-  summarise(n = sum(peso_upt, na.rm = TRUE), .groups = "drop") %>%
-  group_by(meio_transporte) %>%
-  mutate(prop = n / sum(n)) %>%
-  ungroup()
-
-ggplot(base_transporte_tempo, aes(x = meio_transporte, y = prop, fill = tempo_deslocamento)) +
-  geom_col(position = "fill") +
-  scale_y_continuous(labels = percent_format(decimal.mark = ",")) +
-  labs(
-    title = "Meio de transporte x tempo de deslocamento",
-    x = "Meio de transporte",
-    y = "Proporção",
-    fill = "Tempo de deslocamento"
-  ) +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-```
-
-Os diferentes meios de transporte apresentam distribuições distintas de tempo de deslocamento. Essa comparação ajuda a observar quais modais concentram maiores proporções de viagens longas.
-
-## Tempo de deslocamento e sexo
-
-```{r sexo}
-tab_sexo <- xtabs(peso_upt ~ tempo_deslocamento + sexo, data = base_final)
-prop_sexo <- round(prop.table(tab_sexo, 2) * 100, 2)
-
-kable(prop_sexo, digits = 2, caption = "Tabela 7: Percentual do tempo de deslocamento por sexo, com ponderação.")
-
-teste_sexo <- chisq.test(tab_sexo)
-```
-
-Os percentuais por coluna permitem comparar a distribuição do tempo de deslocamento dentro de cada grupo de sexo.
-
-O teste Qui-quadrado não indicou associação estatisticamente significativa entre sexo e tempo de deslocamento (χ² = 2,45; gl = 3; p = 0,485). Dessa forma, não há evidências de que a distribuição dos tempos de deslocamento seja diferente entre homens e mulheres na amostra analisada.
-
-## Tempo de deslocamento e cor/raça
-
-```{r cor}
-tab_cor <- xtabs(peso_upt ~ tempo_agrupado + cor_agrupada, data = base_final)
-prop_cor <- round(prop.table(tab_cor, 2) * 100, 2)
-
-kable(prop_cor, digits = 2, caption = "Tabela 8: Percentual do tempo de deslocamento por cor/raça agrupada, com ponderação por coluna.")
-
-teste_cor <- chisq.test(tab_cor)
-```
-
-A variável cor/raça foi analisada com categorias agrupadas para evitar frequências muito baixas em algumas classes.
-
-O teste Qui-quadrado indicou associação estatisticamente significativa entre cor/raça e tempo de deslocamento (χ² = 130,07; gl = 4; p < 0,001). Esse resultado sugere que a distribuição dos tempos de deslocamento não é a mesma entre os diferentes grupos raciais considerados na análise.
-
-
-## Tempo de deslocamento e escolaridade
-
-```{r escolaridade}
-tab_escolaridade <- xtabs(
-  peso_upt ~ tempo_agrupado + escolaridade_agrupada,
-  data = base_final
-)
-
-prop_escolaridade <- round(prop.table(tab_escolaridade, 2) * 100, 2)
-
-
-kable(
-  prop_escolaridade,
-  digits = 2,
-  caption = "Tabela 9: Percentual do tempo de deslocamento por escolaridade agrupada, com ponderação por coluna."
-)
-
-teste_escolaridade <- chisq.test(tab_escolaridade)
-
-gamma_escolaridade <- GoodmanKruskalGamma(tab_escolaridade)
-```
-
-A escolaridade foi agrupada em três níveis para tornar a comparação mais clara e evitar categorias com frequências pequenas.
-
-O teste Qui-quadrado indicou associação estatisticamente significativa entre escolaridade e tempo de deslocamento (χ² = 274,81; gl = 4; p < 0,001).
-
-O coeficiente Gamma de Goodman-Kruskal foi igual a -0,133, indicando associação negativa fraca entre escolaridade e tempo de deslocamento. Isso sugere que indivíduos com maior escolaridade tendem a apresentar, em média, tempos de deslocamento ligeiramente menores.
 ## Perfil de tempo de deslocamento por UPT
 
-```{r mapa-upt, fig.width=10, fig.height=7}
+```{r mapa-upt, fig.width=12, fig.height=8}
 
 library(sf)
 
 # Carregando o shapefile
-dados_espaciais_upt <- st_read("UPT.shp", quiet = TRUE)
+dados_espaciais_upt <- st_read("dados_geograficos/UPT.shp", quiet = TRUE)
 
 # Proporções de cada faixa de tempo por UPT
 proporcoes_upt <- base_final %>% 
@@ -432,6 +357,40 @@ ggplot(base_mapa) +
 
 ```
 
+Mapa de composição: cada UPT recebe uma coloração específica do gradiente de cor contínuo associada a proporção de cada faixa de tempo dentro da UPT. Desse modo, as cores mais quentes refletem as unidades em que os trabalhadores mais demoram para chegar no local de trabalho. 
+
+## Tempo de deslocamento e meio de transporte
+
+```{r transporte-tempo, fig.width=12, fig.height=8}
+top5_transportes <- base_final %>%
+  count(meio_transporte, wt = peso_upt, name = "n") %>%
+  slice_max(n, n = 5) %>%
+  pull(meio_transporte)
+
+base_transporte_tempo <- base_final %>%
+  filter(meio_transporte %in% top5_transportes) %>%
+  group_by(meio_transporte, tempo_deslocamento) %>%
+  summarise(n = sum(peso_upt, na.rm = TRUE), .groups = "drop") %>%
+  group_by(meio_transporte) %>%
+  mutate(prop = n / sum(n)) %>%
+  ungroup()
+
+ggplot(base_transporte_tempo, aes(x = meio_transporte, y = prop, fill = tempo_deslocamento)) +
+  geom_col(position = "fill") +
+  scale_y_continuous(labels = percent_format(decimal.mark = ",")) +
+  labs(
+    title = "Meio de transporte x tempo de deslocamento",
+    x = "Meio de transporte",
+    y = "Proporção",
+    fill = "Tempo de deslocamento"
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+Os diferentes meios de transporte apresentam distribuições distintas de tempo de deslocamento. Essa comparação ajuda a observar quais modais concentram maiores proporções de viagens longas.
+
+
 ## Tempo de deslocamento e renda
 
 ```{r renda-boxplot, fig.width=10, fig.height=6}
@@ -461,9 +420,86 @@ ggplot(base_final, aes (x = tempo_deslocamento, y = renda, weight = peso_upt, fi
     y = "Renda"
   ) +
   theme_classic()
+
+library(Hmisc)
+
+var_total <- wtd.var(base_filtrada_renda$renda, weights = base_filtrada_renda$peso_upt)
+
+var_dentro <- base_filtrada_renda %>% 
+  group_by(tempo_deslocamento) %>% 
+  summarise(
+    n_ponderado = sum(peso_upt),
+    var_grupo = wtd.var(renda, weights = peso_upt)
+  ) %>% 
+  summarise(
+    var_media = sum(n_ponderado * var_grupo) / sum(n_ponderado)
+  ) %>% 
+  pull(var_media)
+
+r2 <- round(1 - (var_dentro / var_total), 3)
 ```
 
-O boxplot permite comparar a distribuição da renda entre as faixas de tempo de deslocamento. A escala logarítmica foi utilizada porque a variável renda apresenta valores muito dispersos.
+Devido a presença de outliers extremos, foi necessário utilizar a escala logarítimica de base 10 para demonstrar a correlação entre essas variáveis. Visualmente, é possível ver a correlação dessas duas variáveis. Naturalmente, existe uma tendência que, quanto maior a renda, menor é o tempo gasto para chegar no trabalho. Entretanto, o coeficiente de determinação mostra que, embora a associação seja negativa, ela é fraca.
+
+## Tempo de deslocamento e sexo
+
+```{r sexo, echo = FALSE}
+tab_sexo <- xtabs(peso_upt ~ tempo_deslocamento + sexo, data = base_final)
+prop_sexo <- round(prop.table(tab_sexo, 2) * 100, 1)
+
+kable(prop_sexo, digits = 2, caption = "Tabela 7: Percentual do tempo de deslocamento por sexo.")
+
+teste_sexo <- chisq.test(tab_sexo)
+```
+
+Os percentuais por coluna permitem comparar a distribuição do tempo de deslocamento dentro de cada grupo de sexo.
+
+O teste Qui-quadrado não indicou associação estatisticamente significativa entre sexo e tempo de deslocamento (χ² = 2,45; gl = 3; p = 0,485). Dessa forma, não há evidências de que a distribuição dos tempos de deslocamento seja diferente entre homens e mulheres na amostra analisada.
+
+## Tempo de deslocamento e cor/raça
+
+```{r cor}
+tab_cor <- xtabs(peso_upt ~ tempo_agrupado + cor_agrupada, data = base_final)
+prop_cor <- round(prop.table(tab_cor, 2) * 100, 2)
+
+kable(prop_cor, digits = 2, caption = "Tabela 8: Percentual do tempo de deslocamento por cor/raça.")
+
+teste_cor <- chisq.test(tab_cor)
+```
+
+A variável cor/raça foi analisada com categorias agrupadas para evitar frequências muito baixas em algumas classes.
+
+O teste Qui-quadrado indicou associação estatisticamente significativa entre cor/raça e tempo de deslocamento (χ² = 130,07; gl = 4; p < 0,001). Esse resultado sugere que a distribuição dos tempos de deslocamento não é a mesma entre os diferentes grupos raciais considerados na análise.
+
+
+## Tempo de deslocamento e escolaridade
+
+```{r escolaridade}
+tab_escolaridade <- xtabs(
+  peso_upt ~ tempo_agrupado + escolaridade_agrupada,
+  data = base_final
+)
+
+prop_escolaridade <- round(prop.table(tab_escolaridade, 2) * 100, 2)
+
+
+kable(
+  prop_escolaridade,
+  digits = 2,
+  caption = "Tabela 9: Percentual do tempo de deslocamento por escolaridade agrupada."
+)
+
+teste_escolaridade <- chisq.test(tab_escolaridade)
+
+gamma_escolaridade <- GoodmanKruskalGamma(tab_escolaridade)
+```
+
+A escolaridade foi agrupada em três níveis para tornar a comparação mais clara e evitar categorias com frequências pequenas.
+
+O teste Qui-quadrado indicou associação estatisticamente significativa entre escolaridade e tempo de deslocamento (χ² = 274,81; gl = 4; p < 0,001).
+
+O coeficiente Gamma de Goodman-Kruskal foi igual a -0,133, indicando associação negativa fraca entre escolaridade e tempo de deslocamento. Isso sugere que indivíduos com maior escolaridade tendem a apresentar, em média, tempos de deslocamento ligeiramente menores.
+
 
 # Discussão
 
@@ -482,6 +518,8 @@ A análise evidencia que o tempo de deslocamento para o trabalho é uma variáve
 Os resultados sugerem que o tempo de deslocamento não depende apenas da distância física, mas também da forma como as oportunidades de trabalho, a renda e os meios de transporte estão distribuídos no território. Dessa forma, políticas públicas voltadas à mobilidade urbana podem contribuir não apenas para reduzir tempos de viagem, mas também para minimizar desigualdades territoriais e sociais no Distrito Federal.
 
 # Referências
+
+INSTITUTO BRASILEIRO DE GEOGRAFIA E ESTATÍSTICA (IBGE). Censo Demográfico 2022: População e Domicílios - Primeiros Resultados. Rio de Janeiro: IBGE, 2023. Disponível em: https://cidades.ibge.gov.br/brasil/df/brasilia. Acesso em: 22 jun. 2026.
 
 GONÇALVES, Caio César Soares. Deslocamento ao trabalho e meios de transporte: uma análise dos grupos populacionais do Distrito Federal. *Economia & Região*, Londrina, v. 12, n. 1, p. 92-116, jan./abr. 2024. DOI: 10.5433.2317-627X.2024.v12.n1.48469.  
 

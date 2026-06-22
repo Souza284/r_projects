@@ -1,7 +1,7 @@
 # Carregamento da base de dados final -------------------------------------
 
 
-base_final <- read.csv2("dados/base_final.csv")
+base_final <- read.csv2("scripts/base_final.csv")
 
 
 # VISUALIZAÇÃO E ANALISE DESCRITIVA ---------------------------------------
@@ -52,7 +52,7 @@ library(sf)
 
 #Carregando os dados geográficos
 
-dados_espaciais_upt <- st_read("dados/dados_geograficos/UPT.shp")
+dados_espaciais_upt <- st_read("scripts/dados_geograficos/UPT.shp")
 
 #Proporções de cada UPT
 
